@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using Hangfire;
 using Hangfire.PostgreSql;
 using LinguaSign.Analysis;
@@ -23,29 +24,41 @@ builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 52_428_800);
 var connectionString = builder.Configuration.GetConnectionString("Postgres");
 
 // --- Supabase JWT authentication ---
-// Supabase issues access tokens under {SUPABASE_URL}/auth/v1 and publishes signing
-// keys at {SUPABASE_URL}/auth/v1/.well-known/jwks.json. Set Supabase:Url in config.
+// Supabase user access tokens carry audience "authenticated" and issuer
+// "{SUPABASE_URL}/auth/v1". Legacy projects sign with the HS256 JWT secret
+// (set Supabase:JwtSecret); newer projects use asymmetric keys exposed via JWKS.
 var supabaseUrl = builder.Configuration["Supabase:Url"]?.TrimEnd('/');
+var supabaseJwtSecret = builder.Configuration["Supabase:JwtSecret"];
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        if (!string.IsNullOrWhiteSpace(supabaseUrl))
+        var tvp = new TokenValidationParameters
         {
-            options.Authority = $"{supabaseUrl}/auth/v1";
-            options.MetadataAddress = $"{supabaseUrl}/auth/v1/.well-known/openid-configuration";
-        }
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = !string.IsNullOrWhiteSpace(supabaseUrl),
-            ValidIssuer = $"{supabaseUrl}/auth/v1",
             ValidateAudience = true,
             ValidAudience = "authenticated",
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidateIssuer = !string.IsNullOrWhiteSpace(supabaseUrl),
+            ValidIssuers = string.IsNullOrWhiteSpace(supabaseUrl)
+                ? null
+                : [$"{supabaseUrl}/auth/v1", supabaseUrl],
         };
+
+        if (!string.IsNullOrWhiteSpace(supabaseJwtSecret))
+        {
+            // Legacy HS256: validate the signature with the shared JWT secret.
+            tvp.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(supabaseJwtSecret));
+        }
+        else if (!string.IsNullOrWhiteSpace(supabaseUrl))
+        {
+            // Asymmetric keys: resolve signing keys from Supabase's JWKS via discovery.
+            options.Authority = $"{supabaseUrl}/auth/v1";
+            options.MetadataAddress = $"{supabaseUrl}/auth/v1/.well-known/openid-configuration";
+        }
+
+        options.TokenValidationParameters = tvp;
     });
 
 builder.Services.AddAuthorization();
