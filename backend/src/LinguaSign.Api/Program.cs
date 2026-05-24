@@ -4,11 +4,16 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using LinguaSign.Analysis;
 using LinguaSign.Audit;
+using LinguaSign.Audit.Persistence;
+using LinguaSign.Audit.Services;
 using LinguaSign.Documents;
 using LinguaSign.Documents.Persistence;
 using LinguaSign.Documents.Services;
 using LinguaSign.Export;
 using LinguaSign.Signing;
+using LinguaSign.Signing.Contracts;
+using LinguaSign.Signing.Persistence;
+using LinguaSign.Signing.Services;
 using LinguaSign.Translation;
 using LinguaSign.Translation.Persistence;
 using LinguaSign.Translation.Services;
@@ -85,9 +90,9 @@ builder.Services.AddHangfireServer();
 builder.Services
     .AddDocumentsModule(builder.Configuration)
     .AddTranslationModule(builder.Configuration)
-    .AddSigningModule()
+    .AddSigningModule(builder.Configuration)
     .AddAnalysisModule()
-    .AddAuditModule()
+    .AddAuditModule(builder.Configuration)
     .AddExportModule();
 
 var app = builder.Build();
@@ -100,6 +105,8 @@ if (app.Environment.IsDevelopment())
     {
         await scope.ServiceProvider.GetRequiredService<LinguaSignDbContext>().Database.MigrateAsync();
         await scope.ServiceProvider.GetRequiredService<TranslationDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<SigningDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<AuditDbContext>().Database.MigrateAsync();
     }
     catch (Exception ex)
     {
@@ -212,6 +219,65 @@ documents.MapGet("/{id:guid}/translation", async (Guid id, string? target, ITran
     return detail is null ? Results.NotFound() : Results.Ok(detail);
 })
 .WithName("GetTranslation");
+
+// --- Signing API ---
+documents.MapPost("/{id:guid}/sign", async (Guid id, SignRequest req, ISigningService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    if (req is null || string.IsNullOrWhiteSpace(req.SignerName))
+        return Results.BadRequest("signerName is required.");
+
+    var ip = ctx.Connection.RemoteIpAddress?.ToString();
+    var ua = ctx.Request.Headers.UserAgent.ToString();
+    try
+    {
+        return Results.Ok(await svc.SignAsync(userId, id, req, ip, ua));
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.WithName("SignDocument");
+
+documents.MapGet("/{id:guid}/signature", async (Guid id, ISigningService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    var dto = await svc.GetAsync(userId, id);
+    return dto is null ? Results.NotFound() : Results.Ok(dto);
+})
+.WithName("GetSignature");
+
+documents.MapGet("/{id:guid}/signed-pdf", async (Guid id, ISigningService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    var file = await svc.OpenSignedPdfAsync(userId, id);
+    return file is null
+        ? Results.NotFound()
+        : Results.File(file.Stream, "application/pdf", file.FileName);
+})
+.WithName("GetSignedPdf");
+
+// --- Audit API ---
+documents.MapGet("/{id:guid}/audit", async (Guid id, IAuditService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    return userId is null ? Results.Unauthorized() : Results.Ok(await svc.GetTrailAsync(userId, id));
+})
+.WithName("GetAuditTrail");
+
+// --- Export API ---
+documents.MapGet("/{id:guid}/export", async (Guid id, IExportService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    var pkg = await svc.BuildAuditPackageAsync(userId, id);
+    return pkg is null ? Results.NotFound() : Results.File(pkg.Content, pkg.ContentType, pkg.FileName);
+})
+.WithName("ExportAuditPackage");
 
 app.Run();
 

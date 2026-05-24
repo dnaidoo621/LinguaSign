@@ -55,11 +55,13 @@ of what was translated and signed.
   viewer that overlays extracted text blocks with bounding boxes on the original PDF (Phase 1).
 - 🌐 **Bilingual viewer** — clause-by-clause translation (local LLM via Ollama, glossary-injected)
   with original + translation in synchronized panes and hover-linked clauses (Phase 2).
+- ✍️ **Signing, audit & export** — in-app electronic signature stamped onto the PDF with
+  evidentiary metadata (hash, timestamp, IP), an append-only audit trail, and an export of the
+  signed PDF + audit package ZIP (Phase 3).
 
 **Planned (by phase):**
-- ✍️ **Digital signing** — legally-meaningful e-signatures via Documenso, with full metadata (Phase 3).
-- 🧾 **Audit trail & export** — append-only logs, signed PDF, bilingual review copy, audit package (Phase 3).
 - 🚩 **Risk detection & explanations** — flags auto-renewals, penalties, arbitration, etc., in plain language (Phase 4).
+- 🔐 **Documenso / AES-QES signing**, certified-translation tier — post-validation upgrades.
 
 ## Architecture
 
@@ -115,8 +117,8 @@ the option to split later — without paying the distributed-systems tax up fron
 | Async jobs | Hangfire (Phase 1) | Postgres-backed; OCR → translate → analyze pipeline |
 | OCR | Surya / PaddleOCR (self-host) or Azure Document Intelligence | Python ML sidecar |
 | Translation / Analysis | Ollama (local) or cloud LLM | Clause-by-clause, glossary-injected |
-| Signing | Documenso (self-hosted) | AES-level e-signatures + audit |
-| PDF generation | PdfSharp / QuestPDF | Avoids iText (AGPL) |
+| Signing | In-app electronic signature (MVP) | PdfSharp stamp + audit trail; Documenso/AES is a post-validation upgrade |
+| PDF stamping | PdfSharp | Avoids iText (AGPL) |
 
 ## Project Structure
 
@@ -139,10 +141,10 @@ the option to split later — without paying the distributed-systems tax up fron
         └── Modules/
             ├── LinguaSign.Documents/    # Upload, storage, OCR, EF Core      (Phase 1) ✅
             ├── LinguaSign.Translation/  # Segmentation, glossary, translate  (Phase 2) ✅
-            ├── LinguaSign.Signing/      # Documenso integration              (Phase 3)
+            ├── LinguaSign.Signing/      # E-signature + PDF stamp (PdfSharp)  (Phase 3) ✅
             ├── LinguaSign.Analysis/     # Risk detection + explanations      (Phase 4)
-            ├── LinguaSign.Audit/        # Append-only audit trail            (Phase 3)
-            └── LinguaSign.Export/       # Signed PDF / bilingual / audit zip (Phase 3)
+            ├── LinguaSign.Audit/        # Append-only audit trail            (Phase 3) ✅
+            └── LinguaSign.Export/       # Signed PDF + audit package ZIP     (Phase 3) ✅
 ```
 
 Each module exposes an `Add<Module>Module()` extension that registers its own services with DI,
@@ -285,8 +287,8 @@ connection can be overridden with the `LINGUASIGN_DB` environment variable.
 | 0 | Scaffold (auth, modular backend, app shell) | ✅ Done |
 | 1 | Upload → OCR → render extracted blocks | ✅ Done |
 | 2 | Bilingual viewer (translation + synced panes) — **validation milestone** | ✅ Done |
-| 3 | Signing (Documenso) + audit trail + export | ⏭ Next |
-| 4 | Risk detection + clause explanations | |
+| 3 | Signing + audit trail + export | ✅ Done |
+| 4 | Risk detection + clause explanations | ⏭ Next |
 
 **Future:** human-review/certified-translation tier, voice explanations, contract version comparison.
 

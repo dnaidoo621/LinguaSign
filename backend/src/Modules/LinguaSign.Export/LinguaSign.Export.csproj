@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\LinguaSign.Shared\LinguaSign.Shared.csproj" />
+    <ProjectReference Include="..\LinguaSign.Documents\LinguaSign.Documents.csproj" />
+    <ProjectReference Include="..\LinguaSign.Signing\LinguaSign.Signing.csproj" />
+    <ProjectReference Include="..\LinguaSign.Audit\LinguaSign.Audit.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

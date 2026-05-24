@@ -1,16 +1,24 @@
+using LinguaSign.Signing.Persistence;
+using LinguaSign.Signing.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LinguaSign.Signing;
 
 /// <summary>
-/// Signing module — e-signature workflow integration.
-/// Phase 3 will integrate Documenso (self-hosted, AES-level) and signature metadata capture.
+/// Signing module — electronic signature workflow (visible stamp + evidentiary metadata).
+/// MVP: simple in-app signatures. Documenso/AES is the post-validation upgrade path.
 /// </summary>
 public static class SigningModule
 {
-    public static IServiceCollection AddSigningModule(this IServiceCollection services)
+    public static IServiceCollection AddSigningModule(this IServiceCollection services, IConfiguration config)
     {
-        // TODO Phase 3: register Documenso integration and signature workflow services.
+        services.AddDbContext<SigningDbContext>(opt =>
+            opt.UseNpgsql(config.GetConnectionString("Postgres")));
+
+        services.AddScoped<ISigningService, SigningService>();
+
         return services;
     }
 }

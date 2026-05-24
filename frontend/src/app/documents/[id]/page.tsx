@@ -7,6 +7,7 @@ import { apiFetch, apiJson } from "@/lib/api";
 import { useUser } from "@/lib/useUser";
 import type { DocumentDetail, TranslationDetail } from "@/lib/types";
 import TranslationPanel from "@/components/TranslationPanel";
+import SignAndExport from "@/components/SignAndExport";
 
 // react-pdf is browser-only — load without SSR.
 const PdfBlockViewer = dynamic(() => import("@/components/PdfBlockViewer"), {
@@ -158,6 +159,8 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
               )}
             </div>
           </div>
+
+          <SignAndExport documentId={detail.id} fileName={detail.fileName} />
         </>
       )}
     </main>

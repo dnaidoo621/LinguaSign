@@ -43,4 +43,16 @@ test("sign up, upload a PDF, OCR extracts blocks, viewer renders them", async ({
   // Hovering a translated clause should highlight its source block (shared state).
   await segments.first().hover();
   await expect(page.getByTestId("translation-pane")).toBeVisible();
+
+  // --- Phase 3: sign the document and verify the audit trail ---
+  await page.getByTestId("signer-name").fill("Darren Naidoo");
+  await page.getByTestId("sign-button").click();
+
+  await expect(page.getByTestId("signed-status")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("signed-status")).toContainText("Darren Naidoo");
+
+  // An audit event should be recorded, and downloads should be available.
+  await expect(page.getByTestId("audit-event").first()).toBeVisible();
+  await expect(page.getByTestId("download-signed")).toBeVisible();
+  await expect(page.getByTestId("download-export")).toBeVisible();
 });

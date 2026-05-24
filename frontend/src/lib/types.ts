@@ -55,3 +55,21 @@ export interface TranslationDetail {
   error: string | null;
   segments: TranslationSegmentDto[];
 }
+
+export interface SignatureDto {
+  id: string;
+  documentId: string;
+  signerName: string;
+  type: string;
+  signedAt: string;
+  signedHash: string;
+}
+
+export interface AuditEventDto {
+  id: string;
+  eventType: string;
+  detail: string | null;
+  documentHash: string | null;
+  model: string | null;
+  createdAt: string;
+}

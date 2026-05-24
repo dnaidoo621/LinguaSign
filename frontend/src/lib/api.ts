@@ -23,3 +23,17 @@ export async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await apiFetch(path, init);
   return (await res.json()) as T;
 }
+
+/** Download an authenticated endpoint's response as a file. */
+export async function apiDownload(path: string, filename: string): Promise<void> {
+  const res = await apiFetch(path);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
