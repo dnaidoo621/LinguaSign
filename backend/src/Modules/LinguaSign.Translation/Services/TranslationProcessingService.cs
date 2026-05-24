@@ -65,6 +65,10 @@ public class TranslationProcessingService(
                             : b.Text,
                     });
                 }
+
+                // Commit per page so the UI can render results progressively.
+                translation.UpdatedAt = DateTimeOffset.UtcNow;
+                await db.SaveChangesAsync(ct);
             }
 
             translation.Status = TranslationStatus.Completed;

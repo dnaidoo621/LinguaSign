@@ -231,17 +231,27 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
               />
             </div>
             <div className="overflow-auto" data-testid="translation-pane">
-              {translationDone && translation ? (
-                <TranslationPanel
-                  translation={translation}
-                  activeBlock={activeBlock}
-                  onHover={setActiveBlock}
-                  findingsByBlock={findingsByBlock}
-                />
+              {translation && translation.segments.length > 0 ? (
+                <>
+                  {isTranslating && (
+                    <p
+                      data-testid="translation-progress"
+                      className="mb-2 rounded bg-blue-50 px-2 py-1 text-xs text-blue-700"
+                    >
+                      Translating… {translation.segments.length} clauses ready, more on the way.
+                    </p>
+                  )}
+                  <TranslationPanel
+                    translation={translation}
+                    activeBlock={activeBlock}
+                    onHover={setActiveBlock}
+                    findingsByBlock={findingsByBlock}
+                  />
+                </>
               ) : (
                 <p className="text-sm text-gray-400">
                   {isTranslating
-                    ? "Translating the document clause by clause…"
+                    ? "Translating the first page…"
                     : "Click “Translate to English” to generate a synchronized translation."}
                 </p>
               )}

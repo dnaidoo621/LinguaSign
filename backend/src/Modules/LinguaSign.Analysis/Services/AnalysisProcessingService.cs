@@ -87,6 +87,10 @@ public class AnalysisProcessingService(
                         Explanation = explanation,
                     });
                 }
+
+                // Commit per page so risk findings appear progressively.
+                analysis.UpdatedAt = DateTimeOffset.UtcNow;
+                await db.SaveChangesAsync(ct);
             }
 
             analysis.Status = AnalysisStatus.Completed;
