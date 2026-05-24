@@ -15,11 +15,13 @@ export default function PdfBlockViewer({
   pageWidth = 700,
   activeBlock,
   onHover,
+  riskByBlock,
 }: {
   detail: DocumentDetail;
   pageWidth?: number;
   activeBlock: string | null;
   onHover: (id: string | null) => void;
+  riskByBlock?: Record<string, string>;
 }) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,22 +58,31 @@ export default function PdfBlockViewer({
           pageWidth={pageWidth}
           activeBlock={activeBlock}
           onHover={onHover}
+          riskByBlock={riskByBlock}
         />
       ))}
     </Document>
   );
 }
 
+const RISK_CLASS: Record<string, string> = {
+  High: "border-red-500 bg-red-500/20",
+  Medium: "border-orange-500 bg-orange-500/20",
+  Low: "border-yellow-500 bg-yellow-400/20",
+};
+
 function PageWithBlocks({
   page,
   pageWidth,
   activeBlock,
   onHover,
+  riskByBlock,
 }: {
   page: PageDto;
   pageWidth: number;
   activeBlock: string | null;
   onHover: (id: string | null) => void;
+  riskByBlock?: Record<string, string>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // OCR boxes are in source pixels (page.width). Scale them to the rendered width.
@@ -95,8 +106,9 @@ function PageWithBlocks({
             onMouseLeave={() => onHover(null)}
             className={`pointer-events-auto absolute cursor-help border ${
               activeBlock === b.id
-                ? "border-blue-500 bg-blue-500/20"
-                : "border-blue-400/40 bg-blue-400/5"
+                ? "border-blue-600 bg-blue-500/30"
+                : (riskByBlock?.[b.id] && RISK_CLASS[riskByBlock[b.id]]) ||
+                  "border-blue-400/40 bg-blue-400/5"
             }`}
             style={{
               left: b.x * scale,

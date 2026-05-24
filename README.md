@@ -58,10 +58,13 @@ of what was translated and signed.
 - ✍️ **Signing, audit & export** — in-app electronic signature stamped onto the PDF with
   evidentiary metadata (hash, timestamp, IP), an append-only audit trail, and an export of the
   signed PDF + audit package ZIP (Phase 3).
+- 🚩 **Risk detection & explanations** — hybrid (deterministic rules + LLM) clause risk
+  classification (auto-renewal, penalty, arbitration, non-compete, etc.) with plain-language
+  explanations, a risk overlay on the viewer, and a high-risk summary (Phase 4).
 
-**Planned (by phase):**
-- 🚩 **Risk detection & explanations** — flags auto-renewals, penalties, arbitration, etc., in plain language (Phase 4).
-- 🔐 **Documenso / AES-QES signing**, certified-translation tier — post-validation upgrades.
+**Planned / post-validation:**
+- 🔐 Documenso / AES-QES signing, certified human-review translation tier, voice explanations,
+  contract version comparison.
 
 ## Architecture
 
@@ -142,7 +145,7 @@ the option to split later — without paying the distributed-systems tax up fron
             ├── LinguaSign.Documents/    # Upload, storage, OCR, EF Core      (Phase 1) ✅
             ├── LinguaSign.Translation/  # Segmentation, glossary, translate  (Phase 2) ✅
             ├── LinguaSign.Signing/      # E-signature + PDF stamp (PdfSharp)  (Phase 3) ✅
-            ├── LinguaSign.Analysis/     # Risk detection + explanations      (Phase 4)
+            ├── LinguaSign.Analysis/     # Risk detection + explanations      (Phase 4) ✅
             ├── LinguaSign.Audit/        # Append-only audit trail            (Phase 3) ✅
             └── LinguaSign.Export/       # Signed PDF + audit package ZIP     (Phase 3) ✅
 ```
@@ -288,9 +291,11 @@ connection can be overridden with the `LINGUASIGN_DB` environment variable.
 | 1 | Upload → OCR → render extracted blocks | ✅ Done |
 | 2 | Bilingual viewer (translation + synced panes) — **validation milestone** | ✅ Done |
 | 3 | Signing + audit trail + export | ✅ Done |
-| 4 | Risk detection + clause explanations | ⏭ Next |
+| 4 | Risk detection + clause explanations | ✅ Done |
 
-**Future:** human-review/certified-translation tier, voice explanations, contract version comparison.
+All four MVP phases are complete and verified end-to-end (Playwright).
+
+**Future:** Documenso/AES-QES signing, human-review/certified-translation tier, voice explanations, contract version comparison.
 
 ## Cost Model
 

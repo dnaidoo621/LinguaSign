@@ -3,6 +3,8 @@ using System.Text;
 using Hangfire;
 using Hangfire.PostgreSql;
 using LinguaSign.Analysis;
+using LinguaSign.Analysis.Persistence;
+using LinguaSign.Analysis.Services;
 using LinguaSign.Audit;
 using LinguaSign.Audit.Persistence;
 using LinguaSign.Audit.Services;
@@ -91,7 +93,7 @@ builder.Services
     .AddDocumentsModule(builder.Configuration)
     .AddTranslationModule(builder.Configuration)
     .AddSigningModule(builder.Configuration)
-    .AddAnalysisModule()
+    .AddAnalysisModule(builder.Configuration)
     .AddAuditModule(builder.Configuration)
     .AddExportModule();
 
@@ -107,6 +109,7 @@ if (app.Environment.IsDevelopment())
         await scope.ServiceProvider.GetRequiredService<TranslationDbContext>().Database.MigrateAsync();
         await scope.ServiceProvider.GetRequiredService<SigningDbContext>().Database.MigrateAsync();
         await scope.ServiceProvider.GetRequiredService<AuditDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<AnalysisDbContext>().Database.MigrateAsync();
     }
     catch (Exception ex)
     {
@@ -278,6 +281,33 @@ documents.MapGet("/{id:guid}/export", async (Guid id, IExportService svc, HttpCo
     return pkg is null ? Results.NotFound() : Results.File(pkg.Content, pkg.ContentType, pkg.FileName);
 })
 .WithName("ExportAuditPackage");
+
+// --- Analysis API (risk detection + explanations) ---
+documents.MapPost("/{id:guid}/analyze", async (Guid id, IAnalysisService svc, IBackgroundJobClient jobs, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    try
+    {
+        var summary = await svc.StartAsync(userId, id);
+        jobs.Enqueue<IAnalysisProcessingService>(s => s.ProcessAsync(summary.Id, CancellationToken.None));
+        return Results.Accepted($"/api/documents/{id}/analysis", summary);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.WithName("StartAnalysis");
+
+documents.MapGet("/{id:guid}/analysis", async (Guid id, IAnalysisService svc, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (userId is null) return Results.Unauthorized();
+    var detail = await svc.GetAsync(userId, id);
+    return detail is null ? Results.NotFound() : Results.Ok(detail);
+})
+.WithName("GetAnalysis");
 
 app.Run();
 

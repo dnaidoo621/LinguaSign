@@ -55,4 +55,10 @@ test("sign up, upload a PDF, OCR extracts blocks, viewer renders them", async ({
   await expect(page.getByTestId("audit-event").first()).toBeVisible();
   await expect(page.getByTestId("download-signed")).toBeVisible();
   await expect(page.getByTestId("download-export")).toBeVisible();
+
+  // --- Phase 4: analyze risks and verify findings ---
+  await page.getByTestId("analyze-button").click();
+  await expect(page.getByTestId("risk-summary")).toBeVisible({ timeout: 240_000 });
+  // Clause explanations should appear in the translation panel.
+  await expect(page.getByText("💡", { exact: false }).first()).toBeVisible();
 });

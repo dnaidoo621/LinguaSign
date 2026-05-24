@@ -73,3 +73,20 @@ export interface AuditEventDto {
   model: string | null;
   createdAt: string;
 }
+
+export interface ClauseFindingDto {
+  sourceBlockId: string;
+  pageNumber: number;
+  riskLevel: string; // None | Low | Medium | High
+  riskType: string;
+  explanation: string;
+}
+
+export interface AnalysisDetail {
+  id: string;
+  documentId: string;
+  status: string;
+  model: string | null;
+  error: string | null;
+  findings: ClauseFindingDto[];
+}

@@ -7,7 +7,7 @@ import { defineConfig, devices } from "@playwright/test";
 //   - Postgres (docker compose)
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 360_000,
+  timeout: 480_000,
   expect: { timeout: 60_000 },
   fullyParallel: false,
   retries: 0,
