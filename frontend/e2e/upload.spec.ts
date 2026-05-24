@@ -11,22 +11,19 @@ test("sign up, upload a PDF, OCR extracts blocks, viewer renders them", async ({
 
   // Toggle the form into sign-up mode, then create an account.
   // (Email confirmation is disabled, so sign-up logs us straight in.)
-  await page.getByRole("button", { name: /need an account\? sign up/i }).click();
-  await page.getByPlaceholder("Email").fill(email);
-  await page.getByPlaceholder("Password").fill(password);
-  await page.getByRole("button", { name: /^sign up$/i }).click();
+  await page.getByTestId("auth-toggle").click();
+  await page.getByTestId("auth-email").fill(email);
+  await page.getByTestId("auth-password").fill(password);
+  await page.getByTestId("auth-submit").click();
 
-  // Authenticated view shows the uploader.
-  await expect(page.getByText(/drop a pdf/i)).toBeVisible();
-
-  // Upload the bilingual sample PDF.
+  // Authenticated dashboard — open the uploader and upload the sample.
+  await page.getByTestId("new-document").click();
   await page.setInputFiles('input[type="file"]', SAMPLE);
 
-  // OCR runs in the background; the row should reach "Extracted".
-  await expect(page.getByText("Extracted")).toBeVisible({ timeout: 120_000 });
-
-  // Open the document and confirm extracted blocks render over the PDF.
-  await page.getByRole("link", { name: /^view$/i }).first().click();
+  // OCR runs in the background; the row becomes a clickable link once "Ready".
+  const docLink = page.locator("a.doc-row").first();
+  await expect(docLink).toBeVisible({ timeout: 120_000 });
+  await docLink.click();
   await expect(page).toHaveURL(/\/documents\//);
 
   const blocks = page.getByTestId("ocr-block");
