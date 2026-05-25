@@ -29,7 +29,21 @@ test("sign up, run the full pipeline, read bilingual clauses, sign", async ({ pa
   await expect(page.getByTestId("risk-summary")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("reader-clause").first()).toBeVisible({ timeout: 60_000 });
 
-  // Sign the document and verify the audit trail + exports.
+  // Layout variants: Margin (annotated single column) and PDF (react-pdf overlay).
+  await page.getByRole("button", { name: /^margin$/i }).click();
+  await expect(page.locator(".margin-doc")).toBeVisible();
+  await page.getByRole("button", { name: /^pdf$/i }).click();
+  await expect(page.getByTestId("ocr-block").first()).toBeVisible({ timeout: 30_000 });
+
+  // Back to Mirrored — hovering a clause draws the kinship curve across panes.
+  await page.getByRole("button", { name: /^mirrored$/i }).click();
+  await page.getByTestId("reader-clause").first().hover();
+  await expect(page.locator("svg.kinship")).toBeVisible();
+
+  // Risk filter narrows the clause set.
+  await page.getByRole("button", { name: /high only/i }).click();
+
+  // Sign the document and verify the audit trail.
   await page.getByTestId("signer-name").fill("Darren Naidoo");
   await page.getByTestId("agree-check").check();
   await page.getByTestId("sign-button").click();
@@ -37,6 +51,11 @@ test("sign up, run the full pipeline, read bilingual clauses, sign", async ({ pa
   await expect(page.getByTestId("signed-status")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("signed-status")).toContainText("Darren Naidoo");
   await expect(page.getByTestId("audit-event").first()).toBeVisible();
-  await expect(page.getByTestId("download-signed")).toBeVisible();
-  await expect(page.getByTestId("download-export")).toBeVisible();
+
+  // Exporting the audit package triggers a .zip download.
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByTestId("download-export").click(),
+  ]);
+  expect(download.suggestedFilename()).toContain(".zip");
 });

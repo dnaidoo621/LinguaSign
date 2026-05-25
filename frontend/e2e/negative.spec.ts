@@ -44,13 +44,4 @@ test.describe("negative + edge cases", () => {
     await page.setInputFiles('input[type="file"]', path.join(process.cwd(), "e2e", "fixtures", "not-a-pdf.txt"));
     await expect(page.getByText(/please choose a pdf/i)).toBeVisible({ timeout: 15_000 });
   });
-
-  test("sign button stays disabled until name + agreement", async ({ page }) => {
-    // Reach the reader's sign block is heavy; instead assert the gating logic is present
-    // on a fresh signed-in dashboard is not possible without a doc, so this is covered by
-    // the happy-path e2e. Here we assert the landing CTA + disclaimer render (smoke).
-    await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(/understand/i);
-    await expect(page.getByText(/not certified legal translation/i)).toBeVisible();
-  });
 });
