@@ -128,12 +128,8 @@ export default function DashboardPage() {
 
         {showUpload && (
           <div style={{ marginBottom: 28 }}>
-            <UploadDropzone
-              onUploaded={() => {
-                setShowUpload(false);
-                void load();
-              }}
-            />
+            {/* Keep the uploader mounted through the whole pipeline — only refresh the list. */}
+            <UploadDropzone onUploaded={() => void load()} />
           </div>
         )}
 

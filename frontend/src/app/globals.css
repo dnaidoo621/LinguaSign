@@ -605,3 +605,56 @@ button { font-family: inherit; cursor: pointer; }
 }
 .reader-cta { border-top: 1px solid var(--ink); background: var(--paper-2); padding: 18px 24px; }
 @media (max-width: 720px) { .reader-cta { padding: 16px; } }
+
+/* =========================================================================
+   Signing + audit (ported from signing.css)
+   ========================================================================= */
+.signing-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 920px) { .signing-grid { grid-template-columns: 1fr; } }
+.sign-col, .audit-col { display: flex; flex-direction: column; gap: 18px; }
+.sign-card { border: 1px solid var(--ink); background: var(--paper); }
+.sign-card.signed { border-color: var(--stamp); }
+.sign-card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid var(--rule); background: var(--paper-2); }
+.sign-doc-pre { padding: 22px 24px; }
+@media (max-width: 540px) { .sign-doc-pre { padding: 18px; } }
+.party { display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px dashed var(--rule-strong); border-radius: 2px; }
+.party.tenant { border-color: var(--ink); }
+.party-name { font-size: 22px; letter-spacing: -0.01em; color: var(--ink); font-family: var(--serif); }
+.party-sig { position: relative; padding: 14px 12px; border-bottom: 1.5px solid var(--ink); min-height: 64px; display: flex; align-items: center; background: var(--paper-2); }
+.party-sig.sig-input { background: var(--paper); border-style: dashed; border-color: var(--rule-strong); }
+.party-sig.sig-input.stamping { border-style: solid; border-color: var(--stamp); }
+.sig-typer { width: 100%; border: none; background: transparent; font-family: var(--serif); font-style: italic; font-size: 26px; letter-spacing: -0.01em; outline: none; color: var(--ink); }
+.sig-typer::placeholder { font-style: italic; color: var(--ink-4); }
+.stamp-overlay { position: absolute; right: 8px; top: 50%; transform: translateY(-50%) rotate(-8deg); color: var(--stamp); animation: stampDown 600ms cubic-bezier(.5, 1.6, .4, 1); }
+.party-sig.final { border-color: var(--stamp); }
+.party-sig.final .stamp-final { position: absolute; right: 6px; top: 50%; transform: translateY(-50%) rotate(-10deg); color: var(--stamp); }
+.sign-hash { margin-top: 18px; padding: 12px 14px; border: 1px solid var(--rule); background: var(--paper-2); display: flex; flex-direction: column; gap: 4px; }
+.sign-hash code { font-family: var(--mono); font-size: 11px; color: var(--ink-2); letter-spacing: 0.04em; word-break: break-all; }
+.sign-controls { border-top: 1px solid var(--rule); padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
+.agree { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.agree input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--stamp); margin-top: 3px; }
+.sign-btn { justify-content: center; padding: 14px 22px; }
+.sign-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.sign-progress { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--stamp); }
+.progress-bar { height: 4px; background: var(--paper-3); position: relative; overflow: hidden; }
+.progress-bar > div { height: 100%; background: var(--stamp); transition: width 60ms linear; }
+.signed-actions { border-top: 1px solid var(--rule); padding: 16px 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+.export-card { border: 1px solid var(--rule); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.export-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.export-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 8px; }
+.export-list li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--rule); }
+.export-list li:last-child { border-bottom: none; }
+.audit-col { border: 1px solid var(--ink); background: var(--paper); padding: 20px; position: sticky; top: 80px; }
+@media (max-width: 920px) { .audit-col { position: static; } }
+.audit-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--ink); margin-bottom: 10px; }
+.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger-row { display: grid; grid-template-columns: 40px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--rule); position: relative; }
+.ledger-row:last-child { border-bottom: none; }
+.ledger-row.ledger-sign { background: var(--stamp-soft); margin: 6px -10px; padding: 12px 10px; border: 1px solid var(--stamp); border-radius: 2px; }
+.ledger-tick { font-family: var(--mono); color: var(--ink-3); padding-top: 1px; }
+.ledger-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ledger-line { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.ledger-type { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border: 1px solid var(--ink); border-radius: 2px; color: var(--ink); background: var(--paper); }
+.ledger-type.type-sign { background: var(--stamp); color: white; border-color: var(--stamp); }
+.ledger-type.type-export { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ledger-detail { font-family: var(--mono); font-size: 11px; color: var(--ink-3); word-break: break-word; }

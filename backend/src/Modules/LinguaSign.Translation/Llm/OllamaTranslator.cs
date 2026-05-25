@@ -82,23 +82,36 @@ public class OllamaTranslator(HttpClient http, IConfiguration config, ILogger<Ol
             if (doc.RootElement.TryGetProperty("translations", out var arr) &&
                 arr.ValueKind == JsonValueKind.Array)
             {
+                // Smaller models vary the shape: array of {id,text} objects, or a plain
+                // array of strings in order. Handle both, falling back to positional ids.
+                var pos = 0;
                 foreach (var el in arr.EnumerateArray())
                 {
-                    if (!el.TryGetProperty("id", out var idEl) ||
-                        !el.TryGetProperty("text", out var textEl))
+                    pos++;
+                    if (el.ValueKind == JsonValueKind.String)
+                    {
+                        map[pos] = el.GetString() ?? string.Empty;
                         continue;
+                    }
+                    if (el.ValueKind != JsonValueKind.Object) continue;
 
-                    var id = idEl.ValueKind == JsonValueKind.Number
-                        ? idEl.GetInt32()
-                        : int.TryParse(idEl.GetString(), out var p) ? p : -1;
+                    var id = pos;
+                    if (el.TryGetProperty("id", out var idEl))
+                        id = idEl.ValueKind == JsonValueKind.Number
+                            ? idEl.GetInt32()
+                            : int.TryParse(idEl.GetString(), out var p) ? p : pos;
 
-                    if (id > 0) map[id] = textEl.GetString() ?? string.Empty;
+                    var text = el.TryGetProperty("text", out var textEl) ? textEl.GetString()
+                        : el.TryGetProperty("translation", out var trEl) ? trEl.GetString()
+                        : null;
+
+                    if (id > 0 && !string.IsNullOrWhiteSpace(text)) map[id] = text!;
                 }
             }
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException)
         {
-            // Non-JSON response — leave map empty; caller falls back to source text.
+            // Unexpected shape — leave map empty; caller falls back to source text.
         }
         return map;
     }

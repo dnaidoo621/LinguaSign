@@ -73,12 +73,17 @@ public class OllamaClauseAnalyzer(HttpClient http, IConfiguration config, ILogge
             using var doc = JsonDocument.Parse(content);
             if (doc.RootElement.TryGetProperty("analyses", out var arr) && arr.ValueKind == JsonValueKind.Array)
             {
+                var pos = 0;
                 foreach (var el in arr.EnumerateArray())
                 {
-                    if (!el.TryGetProperty("id", out var idEl)) continue;
-                    var id = idEl.ValueKind == JsonValueKind.Number
-                        ? idEl.GetInt32()
-                        : int.TryParse(idEl.GetString(), out var p) ? p : -1;
+                    pos++;
+                    if (el.ValueKind != JsonValueKind.Object) continue;
+
+                    var id = pos;
+                    if (el.TryGetProperty("id", out var idEl))
+                        id = idEl.ValueKind == JsonValueKind.Number
+                            ? idEl.GetInt32()
+                            : int.TryParse(idEl.GetString(), out var p) ? p : pos;
                     if (id <= 0) continue;
 
                     var risk = el.TryGetProperty("risk", out var r) ? r.GetString() : "none";
@@ -92,7 +97,10 @@ public class OllamaClauseAnalyzer(HttpClient http, IConfiguration config, ILogge
                 }
             }
         }
-        catch (JsonException) { /* leave empty; caller falls back to rules */ }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException)
+        {
+            // Unexpected shape — leave empty; caller falls back to deterministic rules.
+        }
         return map;
     }
 

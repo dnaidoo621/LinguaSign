@@ -31,6 +31,7 @@ test("sign up, run the full pipeline, read bilingual clauses, sign", async ({ pa
 
   // Sign the document and verify the audit trail + exports.
   await page.getByTestId("signer-name").fill("Darren Naidoo");
+  await page.getByTestId("agree-check").check();
   await page.getByTestId("sign-button").click();
 
   await expect(page.getByTestId("signed-status")).toBeVisible({ timeout: 60_000 });
