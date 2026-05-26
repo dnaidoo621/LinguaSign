@@ -174,8 +174,8 @@ def train(
     # use_mps_device was removed from TrainingArguments in transformers 4.46; MPS is
     # now auto-detected by PyTorch, so we do not pass it at all.
     #
-    # eval_strategy was added in 4.46 (renamed from evaluation_strategy).  We use
-    # evaluation_strategy which is valid across the full >=4.40,<5 pin range.
+    # eval_strategy was added in transformers 4.46 (renamed from evaluation_strategy).
+    # evaluation_strategy was removed by 4.50+, so we always use eval_strategy.
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     training_args = Seq2SeqTrainingArguments(
         output_dir=output_dir,
@@ -186,7 +186,7 @@ def train(
         warmup_steps=min(500, len(train_dataset) // (batch_size * 4)),
         weight_decay=0.01,
         logging_steps=max(1, len(train_dataset) // (batch_size * 20)),
-        evaluation_strategy="epoch",   # compatible with transformers 4.40–4.x
+        eval_strategy="epoch",         # transformers >=4.46 (evaluation_strategy removed)
         save_strategy="epoch",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
