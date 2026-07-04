@@ -110,7 +110,8 @@ def evaluate(model, loader, device) -> dict[str, float]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="data/risk_labeled.tsv")
+    ap.add_argument("--data", nargs="+", default=["data/risk_labeled.tsv"],
+                    help="one or more TSV files (text, lang, risk, type)")
     ap.add_argument("--base", default="microsoft/Multilingual-MiniLM-L12-H384")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--batch-size", type=int, default=32)
@@ -123,7 +124,7 @@ def main() -> None:
         else "cuda" if torch.cuda.is_available() else "cpu")
     print(f"device: {device}")
 
-    rows = load_rows(pathlib.Path(args.data))
+    rows = [r for p in args.data for r in load_rows(pathlib.Path(p))]
     random.Random(42).shuffle(rows)
     split = max(1, int(len(rows) * 0.1))
     eval_rows, train_rows = rows[:split], rows[split:]
