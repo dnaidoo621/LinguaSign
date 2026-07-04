@@ -1,0 +1,7 @@
+# Training/labeling tooling for the mobile risk classifier.
+# Shares the translation-sidecar venv in dev: ../translation-sidecar/.venv
+torch>=2.4
+transformers>=4.46
+optimum[onnxruntime]>=1.23
+onnxruntime>=1.19
+scikit-learn>=1.5

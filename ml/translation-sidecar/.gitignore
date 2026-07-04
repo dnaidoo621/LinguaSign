@@ -24,3 +24,4 @@ build/
 
 # HuggingFace cache (if redirected here)
 .cache/
+models-mobile/

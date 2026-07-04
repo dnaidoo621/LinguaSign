@@ -1,0 +1,9 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  },
+  // __tests__ are Node-only harnesses (run with tsx + onnxruntime-node),
+  // not part of the app bundle — typechecked by their own toolchain.
+  "exclude": ["node_modules", "engine/__tests__"]
+}
