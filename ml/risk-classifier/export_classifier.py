@@ -47,6 +47,9 @@ def main() -> None:
             "type_logits": {0: "batch"},
         },
         opset_version=17,
+        # torch >=2.9 defaults to the dynamo exporter, whose graph breaks
+        # onnxruntime dynamic quantization shape inference — use TorchScript.
+        dynamo=False,
     )
 
     int8 = model_dir / "risk_classifier_quantized.onnx"

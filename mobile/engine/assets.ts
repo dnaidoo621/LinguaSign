@@ -29,6 +29,12 @@ export const RISK_FILES = [
   "risk/labels.json",
 ] as const;
 
+export const FONT_FILES = [
+  // Static TrueType — pdf-lib requires full embed (subsetting breaks CJK)
+  // and CFF/variable fonts render blank glyphs.
+  "fonts/NanumGothic.ttf",
+] as const;
+
 const modelsDir = new Directory(Paths.document, "models");
 
 export function modelPath(relative: string): string {
@@ -38,7 +44,7 @@ export function modelPath(relative: string): string {
 export async function ensureModels(
   onProgress?: (file: string, index: number, total: number) => void,
 ): Promise<void> {
-  const all = [...TRANSLATION_FILES, ...RISK_FILES];
+  const all = [...TRANSLATION_FILES, ...RISK_FILES, ...FONT_FILES];
   for (let i = 0; i < all.length; i++) {
     const rel = all[i];
     const file = new File(modelsDir, rel);

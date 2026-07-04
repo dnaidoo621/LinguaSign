@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@react-native-ml-kit/text-recognition": "^2.0.0",
     "expo": "~57.0.2",
     "expo-document-picker": "^57.0.0",
